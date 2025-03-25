@@ -75,7 +75,7 @@ class Database:
 
 ```sh
 python main.py
-
+```
 ## Demo Ứng Dụng
 
 Dưới đây là ảnh demo :
