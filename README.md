@@ -80,12 +80,11 @@ python main.py
 
 Dưới đây là ảnh demo :
 
-
-![Giao Diện Chính ](demo\imgs\giaodien.png)
-![Giao Diện Playnow ](demo\imgs\giaodien1.png)
-![Giao Diện Đăng Kí Bằng Khuôn Mặt ](demo\imgs\dangky.png)
-![Cách Đăng Kí Bằng Khuôn Mặt ](demo\imgs\cachdangky.png)
-![Giao Diện Easy ](demo\imgs\daodieneasy.png)
-![Giao Diện Hard ](demo\imgs\daodienhard.png)
-![Giao Diện Setting ](demo\imgs\setting.png)
+![Giao Diện Chính](demo/imgs/giaodien.png)
+![Giao Diện Playnow](demo/imgs/giaodien1.png)
+![Giao Diện Đăng Kí Bảng Khôn Mặt](demo/imgs/dangky.png)
+![Cách Đăng Kí Bảng Khôn Mặt](demo/imgs/cachdangky.png)
+![Giao Diện Easy](demo/imgs/daodieneasy.png)
+![Giao Diện Hard](demo/imgs/daodienhard.png)
+![Giao Diện Setting](demo/imgs/setting.png)
 ```
