@@ -32,7 +32,7 @@ Nếu gặp lỗi khi cài `dlib`, sử dụng cách thủ công:
 - Chọn phiên bản phù hợp với Python của bạn, sau đó cài bằng lệnh:
 
 ```sh
-pip install dlib‑19.24.2‑cp312‑cp312‑win_amd64.whl  # Thay đổi theo phiên bản
+python -m pip install dlib-19.22.99-cp38-cp38-win_amd64.whl  # Thay đổi theo phiên bản
 ```
 
 ## 4. Tạo Tài Khoản và Kết Nối MongoDB Atlas
