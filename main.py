@@ -32,17 +32,17 @@ from components.World import World
 from components.Button import Button
 import components.Face_Detected.get_faces_from_camera_tkinter as register
 
-# Cấu hình Mediapipe
+# Cau hinh Mediapipe
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
 
-# Khởi tạo Pygame
+# Khoi tao Pygame
 pygame.mixer.pre_init(44100, -16, 2, 512)
 mixer.init()
 pygame.init()
 
-# Thiết lập chung
+# Thiet lap chung
 clock = pygame.time.Clock()
 run = True
 game_over = 0
@@ -63,46 +63,51 @@ data_hard_ranking = None
 mode = "EASY"
 player_name = ""
 my_background = background[0]
+login_active = False
+login_message = ""
 
-# Kết nối database
+# Ket noi database
 db = Database()
 
-# Thiết lập màn hình
+# Thiet lap man hinh
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Platformer')
 
-# Khởi tạo các nút
+# Tai anh button login va logout, resize de dong nhat kich thuoc
+login_btn_img = pygame.image.load("D:\\MINHNGUYET\\NAM3\\TGMT1\\DoAn\\TGMTFINAL\\resources\\img\\button\\login.png")
+logout_btn_img = pygame.image.load("D:\\MINHNGUYET\\NAM3\\TGMT1\\DoAn\\TGMTFINAL\\resources\\img\\button\\logout.png")
+login_btn = pygame.transform.scale(login_btn_img, (100, 40))
+logout_btn = pygame.transform.scale(logout_btn_img, (100, 40))
+
+# Khoi tao cac nut
 load_button = Button(screen, screen_width - 165, 30, load_btn)
 save_button = Button(screen, screen_width - 165, 80, save_btn)
 back_button = Button(screen, screen_width - 165, 130, back_btn)
 restart_button = Button(screen, screen_width // 2 - 50, screen_height // 2 - 100, restart_btn)
 menu_button = Button(screen, screen_width // 2 - 50, screen_height // 2 - 20, menu_btn)
 playnow_button = Button(screen, screen_width // 2 - 90, 450, playnow_btn)
-register_button = Button(screen, screen_width // 2 - 90, 560, register_btn)
-exit_button = Button(screen, screen_width // 2 - 90, 670, exit_btn)
+login_button = Button(screen, 10, 10, login_btn)
+register_button = Button(screen, screen_width // 2 - 90, 510, register_btn)
+exit_button = Button(screen, screen_width // 2 - 90, 610, exit_btn)
 easy_button = Button(screen, 180, 500, easy_btn)
 hard_button = Button(screen, screen_width - 360, 500, hard_btn)
 setting_button = Button(screen, 180, 600, setting_btn)
 ranking_button = Button(screen, screen_width - 360, 600, ranking_btn)
+logout_button = Button(screen, screen_width - 110, 10, logout_btn)
 exit_from_main_button = Button(screen, 180, 700, exit_btn)
 back_from_main_button = Button(screen, screen_width - 360, 700, back_from_main_btn)
 back_from_ranking_button = Button(screen, 10, 10, back_from_ranking_btn)
 
-# Khởi tạo coin
+# Khoi tao coin
 score_coin = Coin(tile_size // 2, tile_size // 2)
 coin_group.add(score_coin)
 
-# Khởi tạo face detection
-detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('data/data_dlib/shape_predictor_68_face_landmarks.dat')
-face_reco_model = dlib.face_recognition_model_v1("data/data_dlib/dlib_face_recognition_resnet_model_v1.dat")
-
-# Hàm vẽ text
+# Ham ve text
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x, y))
 
-# Hàm reset level
+# Ham reset level
 def reset_level(player, level):
     print(f'level: {level}')
     blob_group.empty()
@@ -117,13 +122,13 @@ def reset_level(player, level):
     coin_group.add(score_coin)
     return world
 
-# Hàm vẽ lưới
+# Ham ve luoi
 def draw_grid():
     for c in range(21):
         pygame.draw.line(screen, white, (c * tile_size, 0), (c * tile_size, screen_height - margin))
         pygame.draw.line(screen, white, (0, c * tile_size), (screen_width - margin, c * tile_size))
 
-# Hàm vẽ thế giới
+# Ham ve the gioi
 def draw_world():
     for row in range(20):
         for col in range(20):
@@ -153,7 +158,7 @@ def draw_world():
                     img = pygame.transform.scale(exit_img2, (tile_size, int(tile_size * 1.5)))
                     screen.blit(img, (col * tile_size, row * tile_size - (tile_size // 2)))
 
-# Hàm tạo thế giới mới
+# Ham tao the gioi moi
 def generate_new_world():
     new_world = [[0 for _ in range(20)] for _ in range(20)]
     for i in range(20):
@@ -163,18 +168,18 @@ def generate_new_world():
         new_world[i][19] = 1
     return new_world
 
-# Hàm load dữ liệu thế giới
+# Ham load du lieu the gioi
 def load_world_data():
     if os.path.exists(f'./env/level{level}_data'):
         with open(f'./env/level{level}_data', 'rb') as pickle_in:
             return pickle.load(pickle_in)
     return None
 
-# Hàm load background
+# Ham load background
 def load_background():
     return background[random.randint(0, 1)]
 
-# Lớp Player
+# Lop Player
 class Player:
     def __init__(self, screen, x, y):
         self.screen = screen
@@ -218,7 +223,7 @@ class Player:
                         self.jumped = True
                     if not key[pygame.K_SPACE]:
                         self.jumped = False
-                    if keyaptan [pygame.K_LEFT]:
+                    if key[pygame.K_LEFT]:
                         dx -= 5
                         self.counter += 1
                         self.direction = -1
@@ -304,174 +309,95 @@ class Player:
         self.index = 0
         self.counter = 0
 
-# Lớp Face_Recognizer
-class Face_Recognizer:
-    def __init__(self):
-        self.font = cv2.FONT_ITALIC
-        self.frame_time = 0
-        self.frame_start_time = 0
-        self.fps = 0
-        self.fps_show = 0
-        self.start_time = time.time()
-        self.frame_cnt = 0
-        self.face_features_known_list = []
-        self.face_name_known_list = []
-        self.last_frame_face_centroid_list = []
-        self.current_frame_face_centroid_list = []
-        self.last_frame_face_name_list = []
-        self.current_frame_face_name_list = []
-        self.last_frame_face_cnt = 0
-        self.current_frame_face_cnt = 0
-        self.current_frame_face_X_e_distance_list = []
-        self.current_frame_face_position_list = []
-        self.current_frame_face_feature_list = []
-        self.last_current_frame_centroid_e_distance = 0
-        self.reclassify_interval_cnt = 0
-        self.reclassify_interval = 10
-
-    def get_face_database(self):
-        if os.path.exists("data/features_all.csv"):
-            path_features_known_csv = "data/features_all.csv"
-            try:
-                csv_rd = pd.read_csv(path_features_known_csv, header=None, encoding='windows-1258')
-                if csv_rd.empty:
-                    logging.warning("File 'features_all.csv' is empty! No face data available.")
-                    return 0
-                for i in range(csv_rd.shape[0]):
-                    features_someone_arr = []
-                    self.face_name_known_list.append(csv_rd.iloc[i][0])
-                    for j in range(1, 129):
-                        features_someone_arr.append('0' if pd.isna(csv_rd.iloc[i][j]) or csv_rd.iloc[i][j] == '' else csv_rd.iloc[i][j])
-                    self.face_features_known_list.append(features_someone_arr)
-                logging.info("Faces in Database: %d", len(self.face_features_known_list))
-                return 1
-            except pd.errors.EmptyDataError:
-                logging.warning("File 'features_all.csv' is empty or invalid! No face data available.")
-                return 0
-        else:
-            logging.warning("'features_all.csv' not found!")
-            logging.warning("Please run 'get_faces_from_camera.py' and 'features_extraction_to_csv.py' to generate face data.")
-            return 0
-
-    def update_fps(self):
-        now = time.time()
-        if str(self.start_time).split(".")[0] != str(now).split(".")[0]:
-            self.fps_show = self.fps
-        self.start_time = now
-        self.frame_time = now - self.frame_start_time
-        self.fps = 1.0 / self.frame_time if self.frame_time > 0 else 0
-        self.frame_start_time = now
-
-    @staticmethod
-    def return_euclidean_distance(feature_1, feature_2):
-        feature_1 = np.array(feature_1)
-        feature_2 = np.array(feature_2)
-        return np.sqrt(np.sum(np.square(feature_1 - feature_2)))
-
-    def draw_note(self, img_rd):
-        cv2.putText(img_rd, "Face Recognizer with Deep Learning", (20, 40), self.font, 1, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(img_rd, f"Frame: {self.frame_cnt}", (20, 100), self.font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
-        cv2.putText(img_rd, f"FPS: {self.fps.__round__(2)}", (20, 130), self.font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
-        cv2.putText(img_rd, f"Faces: {self.current_frame_face_cnt}", (20, 160), self.font, 0.8, (0, 255, 0), 1, cv2.LINE_AA)
-        cv2.putText(img_rd, "Q: Quit", (20, 450), self.font, 0.8, (255, 255, 255), 1, cv2.LINE_AA)
-
-# Khởi tạo biến webcam
-cap = None
-webcam_active = False
-
-# Khởi tạo game
+# Khoi tao game
 world_data = load_world_data() or generate_new_world()
 world = World(screen, world_data, blob_group, platform_group, lava_group, coin_group, exit_group)
 player = Player(screen, 100, screen_height - 130)
-face_recognizer = Face_Recognizer()
 
-# Vòng lặp chính
+# Vong lap chinh
 with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+    webcam_active = False
+    game_webcam = None  # Bien luu webcam trong che do choi
     while run:
         clock.tick(fps)
-        screen.blit(menu_background, (0, 0))
+
+        # Xu ly su kien truoc de tranh xung dot
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                break
 
         if login_screen:
-            if not player_name:
-                if face_recognizer.get_face_database():
-                    face_recognizer.frame_cnt += 1
-                    logging.debug(f"Frame {face_recognizer.frame_cnt} starts")
-                    if cap is None or not cap.isOpened():
-                        cap = cv2.VideoCapture(0)
-                        if not cap.isOpened():
-                            print("Không thể mở webcam trong login. Vui lòng kiểm tra thiết bị.")
-                            run = False
-                            break
-                    ret, img_rd = cap.read()
-                    if not ret:
-                        print("Không thể đọc khung hình từ webcam trong login.")
-                        continue
-                    faces = detector(img_rd, 0)
-                    face_recognizer.last_frame_face_cnt = face_recognizer.current_frame_face_cnt
-                    face_recognizer.current_frame_face_cnt = len(faces)
-                    face_recognizer.last_frame_face_name_list = face_recognizer.current_frame_face_name_list[:]
-                    face_recognizer.last_frame_face_centroid_list = face_recognizer.current_frame_face_centroid_list
-                    face_recognizer.current_frame_face_centroid_list = []
-
-                    face_recognizer.current_frame_face_position_list = []
-                    face_recognizer.current_frame_face_X_e_distance_list = []
-                    face_recognizer.current_frame_face_feature_list = []
-                    face_recognizer.reclassify_interval_cnt = 0
-
-                    if face_recognizer.current_frame_face_cnt == 0:
-                        face_recognizer.current_frame_face_name_list = []
-                    else:
-                        face_recognizer.current_frame_face_name_list = []
-                        for i in range(len(faces)):
-                            shape = predictor(img_rd, faces[i])
-                            face_recognizer.current_frame_face_feature_list.append(face_reco_model.compute_face_descriptor(img_rd, shape))
-                            face_recognizer.current_frame_face_name_list.append("unknown")
-                            player_name = "unknown"
-
-                        for k in range(len(faces)):
-                            face_recognizer.current_frame_face_X_e_distance_list = []
-                            face_recognizer.current_frame_face_position_list.append((
-                                faces[k].left(), int(faces[k].bottom() + (faces[k].bottom() - faces[k].top()) / 4)
-                            ))
-                            for i in range(len(face_recognizer.face_features_known_list)):
-                                if str(face_recognizer.face_features_known_list[i][0]) != '0.0':
-                                    e_distance_tmp = face_recognizer.return_euclidean_distance(
-                                        face_recognizer.current_frame_face_feature_list[k],
-                                        face_recognizer.face_features_known_list[i]
-                                    )
-                                    face_recognizer.current_frame_face_X_e_distance_list.append(e_distance_tmp)
-                                else:
-                                    face_recognizer.current_frame_face_X_e_distance_list.append(999999999)
-
-                            similar_person_num = face_recognizer.current_frame_face_X_e_distance_list.index(
-                                min(face_recognizer.current_frame_face_X_e_distance_list)
-                            )
-                            if min(face_recognizer.current_frame_face_X_e_distance_list) < 0.4:
-                                player_name = face_recognizer.current_frame_face_name_list[k] = face_recognizer.face_name_known_list[similar_person_num]
-
+            # Giao dien login screen
+            screen.blit(menu_background, (0, 0))
             screen.blit(logo, (screen_width // 2 - 200, 20))
             draw_text("Adventure", pygame.font.SysFont('Bauhaus 93', 100), (241, 196, 15), 190, 260)
-            draw_text(f"Player: {player_name}", font_main, (44, 62, 80), 250, 380)
-            if register_button.draw():
-                register.main()
-                player_name = ""
+            display_name = player_name if player_name else "unknown"
+            draw_text(f"Player: {display_name}", font_main, (44, 62, 80), 250, 380)
+            draw_text(login_message, font_main, (44, 62, 80), 250, 410)
+
+            # Xu ly nut Login
+            if login_button.draw():
+                login_active = True
+                login_message = "Dang mo webcam, vui long cho..."
+
+            if login_active:
+                # Hien thi thong bao truoc khi mo webcam
+                screen.blit(menu_background, (0, 0))
+                screen.blit(logo, (screen_width // 2 - 200, 20))
+                draw_text("Adventure", pygame.font.SysFont('Bauhaus 93', 100), (241, 196, 15), 190, 260)
+                draw_text(f"Player: {display_name}", font_main, (44, 62, 80), 250, 380)
+                draw_text("Dang mo webcam, vui long cho...", font_main, (44, 62, 80), 250, 410)
+                pygame.display.update()
+
+                # Dong tat ca cua so webcam truoc do
+                cv2.destroyAllWindows()
+                # Dong webcam cua Mediapipe neu dang mo
+                if webcam_active and game_webcam is not None:
+                    game_webcam.release()
+                    webcam_active = False
+                # Goi ham login() va dung vong lap Pygame
+                player_name, login_message = register.login()
+                login_active = False
+                if player_name != "unknown":
+                    main_menu = True
+                    login_screen = False
+                # Sau khi login xong, ve lai man hinh truoc khi tiep tuc vong lap
+                screen.blit(menu_background, (0, 0))
+                screen.blit(logo, (screen_width // 2 - 200, 20))
+                draw_text("Adventure", pygame.font.SysFont('Bauhaus 93', 100), (241, 196, 15), 190, 260)
+                draw_text(f"Player: {player_name if player_name else 'unknown'}", font_main, (44, 62, 80), 250, 380)
+                draw_text(login_message, font_main, (44, 62, 80), 250, 410)
+                pygame.display.update()
+                continue
+
+            # Cac nut khac trong login screen
             if playnow_button.draw():
                 main_menu = True
                 login_screen = False
+                login_message = ""
+            if register_button.draw():
+                # Dong tat ca cua so webcam truoc khi goi Register
+                cv2.destroyAllWindows()
+                if webcam_active and game_webcam is not None:
+                    game_webcam.release()
+                    webcam_active = False
+                player_name = register.main()
+                login_message = ""
+                if player_name != "unknown":
+                    main_menu = True
+                    login_screen = False
             if exit_button.draw():
                 run = False
-                if cap:
-                    cap.release()
                 break
             pygame.display.update()
 
         elif main_menu:
-            if cap and cap.isOpened():
-                cap.release()
-                cv2.destroyAllWindows()
+            screen.blit(menu_background, (0, 0))
             screen.blit(logo, (screen_width // 2 - 200, 20))
             draw_text("Adventure", pygame.font.SysFont('Bauhaus 93', 100), (241, 196, 15), 190, 260)
-            draw_text(f"Player: {player_name}", font_main, (44, 62, 80), 250, 380)
+            display_name = player_name if player_name else "unknown"
+            draw_text(f"Player: {display_name}", font_main, (44, 62, 80), 250, 380)
             if exit_from_main_button.draw():
                 run = False
                 break
@@ -480,11 +406,23 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 main_menu = False
                 level = 1
                 webcam_active = True
+                # Mo webcam mot lan duy nhat khi bat dau che do choi
+                game_webcam = cv2.VideoCapture(0)
+                if not game_webcam.isOpened():
+                    print("Khong the mo webcam trong che do choi. Vui long kiem tra thiet bi.")
+                    webcam_active = False
+                    main_menu = True
             if hard_button.draw():
                 mode = "HARD"
                 main_menu = False
                 level = 1
                 webcam_active = True
+                # Mo webcam mot lan duy nhat khi bat dau che do choi
+                game_webcam = cv2.VideoCapture(0)
+                if not game_webcam.isOpened():
+                    print("Khong the mo webcam trong che do choi. Vui long kiem tra thiet bi.")
+                    webcam_active = False
+                    main_menu = True
             if setting_button.draw():
                 setting_menu = True
                 main_menu = False
@@ -493,6 +431,7 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 main_menu = False
                 login_screen = True
                 player_name = ""
+                login_message = ""
             if ranking_button.draw():
                 ranking_screen = True
                 main_menu = False
@@ -500,15 +439,18 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     data_easy_ranking = [data for data in db.get_statistic() if data.get("mode") == "EASY"]
                     data_hard_ranking = [data for data in db.get_statistic() if data.get("mode") == "HARD"]
                 except Exception as e:
-                    print(f"Lỗi khi lấy dữ liệu xếp hạng: {e}")
+                    print(f"Loi khi lay du lieu xep hang: {e}")
                     data_easy_ranking = []
                     data_hard_ranking = []
+            if logout_button.draw():
+                main_menu = False
+                login_screen = True
+                player_name = ""
+                login_message = ""
+                login_active = False
             pygame.display.update()
 
         elif setting_menu:
-            if cap and cap.isOpened():
-                cap.release()
-                cv2.destroyAllWindows()
             screen.fill(green)
             screen.blit(setting_background, (0, 0))
             if save_button.draw():
@@ -524,25 +466,22 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
             draw_grid()
             draw_world()
             draw_text(f'Level: {level}', pygame.font.SysFont('Futura', 32), white, 100, screen_height - 140)
-            draw_text('Press UP or DOWN to change level', pygame.font.SysFont('Futura', 32), white, 100, screen_height - 110)
+            draw_text('Nhan UP hoac DOWN de thay doi level', pygame.font.SysFont('Futura', 32), white, 100, screen_height - 110)
             pygame.display.update()
 
         elif ranking_screen:
-            if cap and cap.isOpened():
-                cap.release()
-                cv2.destroyAllWindows()
             screen.blit(background[0], (0, 0))
-            draw_text('Ranking', pygame.font.SysFont('Bauhaus 93', 55), wet_asphalt, 300, 10)
+            draw_text('Xep Hang', pygame.font.SysFont('Bauhaus 93', 55), wet_asphalt, 300, 10)
             draw_text('EASY', font_main, wet_asphalt, 150, 80)
             draw_text('HARD', font_main, wet_asphalt, 540, 80)
             size_of_easy_ranking = min(10, len(data_easy_ranking) if data_easy_ranking else 0)
             size_of_hard_ranking = min(10, len(data_hard_ranking) if data_hard_ranking else 0)
             draw_text("ID", font_ranking, wet_asphalt, 40, 160)
-            draw_text("Player", font_ranking, wet_asphalt, 100, 160)
-            draw_text("Score", font_ranking, wet_asphalt, 300, 160)
+            draw_text("Nguoi Choi", font_ranking, wet_asphalt, 100, 160)
+            draw_text("Diem", font_ranking, wet_asphalt, 300, 160)
             draw_text("ID", font_ranking, wet_asphalt, 470, 160)
-            draw_text("Player", font_ranking, wet_asphalt, 530, 160)
-            draw_text("Score", font_ranking, wet_asphalt, 730, 160)
+            draw_text("Nguoi Choi", font_ranking, wet_asphalt, 530, 160)
+            draw_text("Diem", font_ranking, wet_asphalt, 730, 160)
             if data_easy_ranking:
                 for i in range(size_of_easy_ranking):
                     draw_text(str(i + 1), font_ranking, wet_asphalt, 40, 200 + 40 * i)
@@ -558,31 +497,37 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                 ranking_screen = False
             pygame.display.update()
 
-        else:  # Chế độ chơi
+        else:
             if webcam_active:
-                if cap is None or not cap.isOpened():
-                    cap = cv2.VideoCapture(0)
-                    if not cap.isOpened():
-                        print("Không thể mở webcam trong chế độ chơi. Vui lòng kiểm tra thiết bị.")
-                        run = False
-                        break
-                ret, image = cap.read()
+                if game_webcam is None or not game_webcam.isOpened():
+                    print("Khong the mo webcam trong che do choi. Vui long kiem tra thiet bi.")
+                    webcam_active = False
+                    main_menu = True
+                    continue
+
+                ret, image = game_webcam.read()
                 if not ret:
-                    print("Không thể đọc khung hình từ webcam trong chế độ chơi. Đang thử lại...")
-                    cap.release()
-                    cap = cv2.VideoCapture(0)  # Thử khởi tạo lại webcam
-                    ret, image = cap.read()
+                    print("Khong the doc khung hinh tu webcam trong che do choi. Dang thu lai...")
+                    game_webcam.release()
+                    game_webcam = cv2.VideoCapture(0)
+                    ret, image = game_webcam.read()
                     if not ret:
-                        print("Vẫn không thể đọc khung hình. Kiểm tra webcam hoặc kết nối.")
+                        print("Van khong the doc khung hinh. Kiem tra webcam hoac ket noi.")
+                        webcam_active = False
+                        main_menu = True
                         continue
 
+                # Khong giam kich thuoc khung hinh, giu nguyen kich thuoc goc
                 image.flags.writeable = False
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+                # Xu ly Mediapipe tren moi khung hinh
                 results = hands.process(image)
+
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-                if results.multi_hand_landmarks:
+                if results and results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
                         mp_drawing.draw_landmarks(
                             image, hand_landmarks, mp_hands.HAND_CONNECTIONS,
@@ -609,13 +554,14 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         if handList[2][0] > handList[4][0]:
                             left_action = False
 
-                cv2.imshow('Hand detector', cv2.flip(image, 1))
+                cv2.imshow('Nhan Dien Tay', cv2.flip(image, 1))
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     webcam_active = False
                     main_menu = True
-                    if cap:
-                        cap.release()
-                        cv2.destroyAllWindows()
+                    if game_webcam is not None:
+                        game_webcam.release()
+                        game_webcam = None
+                    cv2.destroyAllWindows()
 
             screen.blit(my_background, (0, 0))
             world.draw()
@@ -645,12 +591,12 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     main_menu = True
                     pedding = False
                     webcam_active = False
-                    if cap:
-                        cap.release()
-                        cv2.destroyAllWindows()
+                    if game_webcam is not None:
+                        game_webcam.release()
+                        game_webcam = None
 
             if game_over == -1:
-                if accept_save_database and player_name != 'unknown':
+                if accept_save_database:
                     db.save_statistic(player_name, score, level, mode)
                     accept_save_database = False
                 if restart_button.draw():
@@ -665,9 +611,9 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     main_menu = True
                     accept_save_database = True
                     webcam_active = False
-                    if cap:
-                        cap.release()
-                        cv2.destroyAllWindows()
+                    if game_webcam is not None:
+                        game_webcam.release()
+                        game_webcam = None
 
             if game_over == 1:
                 level += 1
@@ -677,10 +623,10 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                     world = reset_level(player, level)
                     game_over = 0
                 else:
-                    if accept_save_database and player_name != 'unknown':
+                    if accept_save_database:
                         db.save_statistic(player_name, score, level, mode)
                         accept_save_database = False
-                    draw_text('YOU WIN!', font, yellow, (screen_width // 2) - 140, screen_height // 2 - 215)
+                    draw_text('BAN THANG!', font, yellow, (screen_width // 2) - 140, screen_height // 2 - 215)
                     if restart_button.draw():
                         level = 1
                         world_data = generate_new_world()
@@ -695,9 +641,9 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
                         game_over = score = 0
                         accept_save_database = True
                         webcam_active = False
-                        if cap:
-                            cap.release()
-                            cv2.destroyAllWindows()
+                        if game_webcam is not None:
+                            game_webcam.release()
+                            game_webcam = None
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -724,8 +670,8 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
 
         pygame.display.update()
 
-# Dọn dẹp khi thoát
+# Don dep khi thoat
+if game_webcam is not None:
+    game_webcam.release()
 pygame.quit()
-if cap:
-    cap.release()
 cv2.destroyAllWindows()
