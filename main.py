@@ -218,7 +218,7 @@ class Player:
                         self.jumped = True
                     if not key[pygame.K_SPACE]:
                         self.jumped = False
-                    if key[pygame.K_LEFT]:
+                    if keyaptan [pygame.K_LEFT]:
                         dx -= 5
                         self.counter += 1
                         self.direction = -1
@@ -496,8 +496,13 @@ with mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracki
             if ranking_button.draw():
                 ranking_screen = True
                 main_menu = False
-                data_easy_ranking = db.get_ranking("EASY")
-                data_hard_ranking = db.get_ranking("HARD")
+                try:
+                    data_easy_ranking = [data for data in db.get_statistic() if data.get("mode") == "EASY"]
+                    data_hard_ranking = [data for data in db.get_statistic() if data.get("mode") == "HARD"]
+                except Exception as e:
+                    print(f"Lỗi khi lấy dữ liệu xếp hạng: {e}")
+                    data_easy_ranking = []
+                    data_hard_ranking = []
             pygame.display.update()
 
         elif setting_menu:
